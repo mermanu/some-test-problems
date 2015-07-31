@@ -29,12 +29,14 @@ public class Solution1 {
 	public Integer[][] solution(Integer[][] intervals){
 		TreeMap<Integer,ArrayList<Interval>> lengthValues = new TreeMap<Integer, ArrayList<Interval>>(); 
 		Integer[][] result=null;
+		
 		Solution1 solution=new Solution1();
-		//primitive to ArrayList
+		//Primitive to ArrayList
 		ArrayList<Interval> entry = new ArrayList<Solution1.Interval>();
 		for(Integer[] interval : intervals){			
 			entry.add(solution.new Interval(interval[0], interval[1]));			
 		}
+		intervals=null;
 		
 		//execute to find intervals, length and relative nodes
 		solution.execute(entry, lengthValues);
@@ -43,7 +45,8 @@ public class Solution1 {
 		if(lengthValues.size()>0){			
 			System.out.println("Intersections length "+lengthValues.lastKey() );
 			ArrayList<Interval> maxIntervals=lengthValues.get(lengthValues.lastKey());
-			result=new Integer[maxIntervals.size()][2];		
+			result=new Integer[maxIntervals.size()][2];	
+			//generate primitive type
 			for(int i = 0; i < maxIntervals.size(); i++){
 				result[i][0]=maxIntervals.get(i).start;
 				result[i][1]=maxIntervals.get(i).end;
@@ -63,8 +66,34 @@ public class Solution1 {
 	 * @param intervals the intervals
 	 * @return the array list
 	 */
-	public void execute(ArrayList<Interval> intervals, Map<Integer,ArrayList<Interval>> lengthValues) {
-	    //first sort all Interval values
+	public void execute(ArrayList<Interval> intervals, Map<Integer,ArrayList<Interval>> lengthValues) {	   
+		//first sort all Interval values
+		sortIntervals(intervals);	    
+		
+	    //get length and assign relative nodes
+	    for (int i = 0; i < intervals.size(); i++) {
+	        Interval cur = intervals.get(i);
+	        
+	        if (i==0 && intervals.size()>1) {
+	        	cur.right=intervals.get(i+1);	        
+	        } else {
+	            Interval last = intervals.get(i-1);
+	            if (last.end >= cur.start) {
+	            	cur.length=last.end-cur.start;
+	            	cur.left=last;
+	            	last.right=cur;
+	            	setCurrentNodeToTreeMap(lengthValues, cur);
+	            }
+	        }
+	    }	    
+	}
+	
+	/**
+	 * Sort intervals.
+	 *
+	 * @param intervals the intervals
+	 */
+	private void sortIntervals(ArrayList<Interval> intervals){		 
 	    Comparator<Interval> comparator = new Comparator<Interval>() {
 	        @Override
 	        public int compare(Interval i1, Interval i2) {
@@ -83,31 +112,24 @@ public class Solution1 {
 	        }
 	    };
 	    Collections.sort(intervals, comparator);
-	    
-	    //get length and assign relative nodes
-	    for (int i = 0; i < intervals.size(); i++) {
-	        Interval cur = intervals.get(i);
-	        
-	        if (i==0 && intervals.size()>1) {
-	        	cur.right=intervals.get(i+1);	        
-	        } else {
-	            Interval last = intervals.get(i-1);
-	            if (last.end >= cur.start) {
-	            	cur.length=last.end-cur.start;
-	            	cur.left=last;
-	            	last.right=cur;
-	            	if(lengthValues.get(cur.length)!=null){
-	            		lengthValues.get(cur.length).add(cur.left);
-	            		lengthValues.get(cur.length).add(cur);	            		
-	            	}else{
-	            		ArrayList<Solution1.Interval> values = new ArrayList<Interval>();
-	            		values.add(cur.left);	
-	            		values.add(cur);
-	            		lengthValues.put(cur.length, values);	            		            		
-	            	}
-	            }
-	        }
-	    }	    
+	}
+	
+	/**
+	 * Sets the current node to tree map.
+	 *
+	 * @param lengthValues the length values
+	 * @param cur the cur
+	 */
+	private void setCurrentNodeToTreeMap(Map<Integer,ArrayList<Interval>> lengthValues, Interval cur){
+		if(lengthValues.get(cur.length)!=null){
+    		lengthValues.get(cur.length).add(cur.left);
+    		lengthValues.get(cur.length).add(cur);	            		
+    	}else{
+    		ArrayList<Solution1.Interval> values = new ArrayList<Interval>();
+    		values.add(cur.left);	
+    		values.add(cur);
+    		lengthValues.put(cur.length, values);	            		            		
+    	}
 	}
 	
 	/**
